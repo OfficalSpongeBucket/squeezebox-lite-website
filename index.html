@@ -9,44 +9,56 @@
 
     <style>
         body {
-            background: #f5f5f5;
+            background: #111;
+            color: white;
             font-family: 'Open Sans', sans-serif;
             text-align: center;
             padding-top: 80px;
         }
 
         .logo {
-            font-size: 48px;
+            font-size: 50px;
             font-weight: 700;
+            letter-spacing: 1px;
         }
 
         .lite {
             font-family: 'Della Respira', serif;
-            font-size: 32px;
+            font-size: 26px;
             background: linear-gradient(90deg, #00c6ff, #00ff85);
             -webkit-background-clip: text;
             color: transparent;
-            margin-left: 10px;
+            margin-left: 8px;
+            vertical-align: middle;
         }
 
         .upload-box {
-            margin: 40px auto;
+            margin: 50px auto;
             padding: 40px;
-            width: 300px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            width: 380px;
+            background: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 4px;
+        }
+
+        input[type="file"] {
+            margin-top: 10px;
         }
 
         button {
-            margin-top: 20px;
-            padding: 12px 30px;
+            margin-top: 25px;
+            padding: 14px 40px;
             font-size: 18px;
             border: none;
-            border-radius: 8px;
-            background: black;
-            color: white;
+            border-radius: 4px;
+            background: #00ff85;
+            color: #111;
+            font-weight: bold;
             cursor: pointer;
+        }
+
+        button:hover {
+            background: #00c66f;
         }
     </style>
 </head>
@@ -58,6 +70,7 @@
     </div>
 
     <div class="upload-box">
+        <div>Select a file to compress:</div>
         <input type="file" id="fileInput">
         <br>
         <button id="compressBtn">Compress</button>
