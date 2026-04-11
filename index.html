@@ -14,24 +14,11 @@
         padding: 40px;
     }
 
-    .screen {
-        display: none;
-    }
+    .screen { display: none; }
+    .visible { display: block; }
 
-    .visible {
-        display: block;
-    }
-
-    /* Launcher */
-    .launcher-title {
-        font-size: 32px;
-        margin-bottom: 5px;
-    }
-
-    .launcher-sub {
-        color: #888;
-        margin-bottom: 30px;
-    }
+    .launcher-title { font-size: 32px; margin-bottom: 5px; }
+    .launcher-sub { color: #888; margin-bottom: 30px; }
 
     .menu-item {
         font-size: 20px;
@@ -40,11 +27,10 @@
     }
 
     .menu-item .arrow {
-        color: #7fcaff; /* light blue highlight */
+        color: #7fcaff;
         margin-right: 8px;
     }
 
-    /* About page */
     .divider {
         border-bottom: 2px dashed #666;
         margin: 15px 0;
@@ -63,16 +49,8 @@
         margin-top: 10px;
     }
 
-    /* Loading screen */
-    .loading-text {
-        font-size: 24px;
-        margin-bottom: 10px;
-    }
-
-    .loading-sub {
-        color: #ccc;
-        margin-top: 10px;
-    }
+    .loading-text { font-size: 24px; margin-bottom: 10px; }
+    .loading-sub { color: #ccc; margin-top: 10px; }
 
     .version {
         color: #e6c300;
@@ -83,9 +61,7 @@
 
 <body>
 
-<!-- ========================= -->
-<!--        LAUNCHER          -->
-<!-- ========================= -->
+<!-- LAUNCHER -->
 <div id="launcher" class="screen visible">
     <div class="launcher-title">SqueezeBox lite Launcher</div>
     <div class="launcher-sub">The smartest Compressor you will ever use.</div>
@@ -96,13 +72,10 @@
         <div class="menu-item"><span class="arrow" style="visibility:hidden">></span> Exit to Download page</div>
     </div>
 
-    <div class="version">version 1.0 beta testing</div>
+    <div class="version">version 1.3 beta testing</div>
 </div>
 
-
-<!-- ========================= -->
-<!--        ABOUT PAGE        -->
-<!-- ========================= -->
+<!-- ABOUT -->
 <div id="about" class="screen">
     <div style="font-size:24px;">What is SqueezeBox lite?</div>
     <div class="divider"></div>
@@ -113,15 +86,12 @@
     </div>
 
     <div class="divider"></div>
-    <div class="back" onclick="showScreen('launcher')">> Back</div>
+    <div id="back-about" class="back">> Back</div>
 
     <div class="version">version 1.0 beta testing</div>
 </div>
 
-
-<!-- ========================= -->
-<!--       LOADING PAGE       -->
-<!-- ========================= -->
+<!-- LOADING -->
 <div id="loading" class="screen">
     <div class="loading-text">Loading... <span class="spinner">/</span></div>
 
@@ -133,10 +103,7 @@
     <div class="version">version 1.0 beta testing</div>
 </div>
 
-
-<!-- ========================= -->
-<!--       ENGINE PAGE        -->
-<!-- ========================= -->
+<!-- ENGINE -->
 <div id="engine" class="screen">
     <div style="font-size:24px;">SqueezeBox lite Engine</div>
     <div class="divider"></div>
@@ -144,30 +111,27 @@
     <div class="about-text">[ Your compression UI will go here ]</div>
 
     <div class="divider"></div>
-    <div class="back" onclick="showScreen('launcher')">> Back</div>
+    <div id="back-engine" class="back">> Back</div>
 
     <div class="version">version 1.0 beta testing</div>
 </div>
 
-
 <script>
-/* ============================
-   SCREEN SWITCHING
-============================ */
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('visible'));
     document.getElementById(id).classList.add('visible');
 
-    // Reset launcher arrow when returning
     if (id === "launcher") {
         index = 0;
         updateArrows();
     }
 }
 
-/* ============================
-   LAUNCHER ARROW NAVIGATION
-============================ */
+/* Back buttons wired in JS */
+document.getElementById('back-about').addEventListener('click', () => showScreen('launcher'));
+document.getElementById('back-engine').addEventListener('click', () => showScreen('launcher'));
+
+/* Launcher arrow navigation */
 let index = 0;
 const items = document.querySelectorAll('#menu .menu-item');
 
@@ -177,7 +141,6 @@ function updateArrows() {
         arrow.style.visibility = (i === index) ? "visible" : "hidden";
     });
 }
-
 updateArrows();
 
 document.addEventListener('keydown', (e) => {
@@ -203,10 +166,8 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-/* ============================
-   OG SQUEEZEBOX SPINNER
-============================ */
-const spinnerFrames = ["/", "-", "\\\\", "|"];
+/* OG SqueezeBox spinner */
+const spinnerFrames = ["/", "-", "\\", "|"];
 let spinnerIndex = 0;
 
 setInterval(() => {
@@ -215,7 +176,7 @@ setInterval(() => {
         spinner.textContent = spinnerFrames[spinnerIndex];
         spinnerIndex = (spinnerIndex + 1) % spinnerFrames.length;
     }
-}, 100); // 0.1 seconds per frame
+}, 100);
 </script>
 
 </body>
