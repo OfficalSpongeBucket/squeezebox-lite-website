@@ -5,22 +5,24 @@
     <title>SqueezeBox Lite</title>
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&family=Della+Respira&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&family=Della+Respira&family=Source+Code+Pro&display=swap" rel="stylesheet">
 
     <style>
         body {
-            background: #111;
-            color: white;
-            font-family: 'Open Sans', sans-serif;
+            background: #0d0d0d;
+            color: #e6e6e6;
+            font-family: 'Source Code Pro', monospace;
             margin: 0;
-            padding: 60px;
+            padding: 50px;
         }
 
         .logo {
-            font-size: 50px;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 48px;
             font-weight: 700;
             letter-spacing: 1px;
             text-align: left;
+            color: #00ff85;
         }
 
         .lite {
@@ -29,38 +31,27 @@
             background: linear-gradient(90deg, #00c6ff, #00ff85);
             -webkit-background-clip: text;
             color: transparent;
-            margin-left: 8px;
-            vertical-align: middle;
+            margin-left: 10px;
         }
 
-        .upload-box {
+        .menu {
             margin-top: 40px;
-            padding: 30px;
-            width: 420px;
-            background: #1a1a1a;
-            border: 2px solid #333;
-            border-radius: 4px;
             text-align: left;
         }
 
-        input[type="file"] {
-            margin-top: 10px;
-        }
-
-        button {
-            margin-top: 25px;
-            padding: 14px 40px;
-            font-size: 18px;
-            border: none;
-            border-radius: 4px;
-            background: #00ff85;
-            color: #111;
-            font-weight: bold;
+        .menu-item {
+            font-size: 20px;
+            margin: 12px 0;
             cursor: pointer;
+            color: #00ff85;
         }
 
-        button:hover {
-            background: #00c66f;
+        .menu-item:hover {
+            color: #00c66f;
+        }
+
+        .prefix {
+            color: #00ff85;
         }
     </style>
 </head>
@@ -71,11 +62,10 @@
         SQUEEZEBOX <span class="lite">lite</span>
     </div>
 
-    <div class="upload-box">
-        <div>Select a file to compress:</div>
-        <input type="file" id="fileInput">
-        <br>
-        <button id="compressBtn">Compress</button>
+    <div class="menu">
+        <div class="menu-item"><span class="prefix">></span> Launch Engine</div>
+        <div class="menu-item"><span class="prefix">></span> About</div>
+        <div class="menu-item"><span class="prefix">></span> Exit</div>
     </div>
 
 </body>
