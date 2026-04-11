@@ -1,68 +1,215 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>SqueezeBox Lite</title>
+<meta charset="UTF-8">
+<title>SqueezeBox Lite</title>
 
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap" rel="stylesheet">
+<style>
+    body {
+        background: black;
+        color: white;
+        font-family: "Courier New", monospace;
+        font-weight: bold;
+        margin: 0;
+        padding: 40px;
+    }
 
-    <style>
-        body {
-            background: #0f0f0f;
-            color: #e0e0e0;
-            font-family: 'Source Code Pro', monospace;
-            margin: 0;
-            padding: 60px;
-        }
+    .screen {
+        display: none;
+    }
 
-        .menu-title {
-            font-size: 22px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            text-align: left;
-            color: #ffffff;
-        }
+    .visible {
+        display: block;
+    }
 
-        .divider {
-            width: 320px;
-            height: 2px;
-            background: #2a2a2a;
-            margin-bottom: 30px;
-        }
+    /* Launcher */
+    .launcher-title {
+        font-size: 32px;
+        margin-bottom: 5px;
+    }
 
-        .menu {
-            text-align: left;
-        }
+    .launcher-sub {
+        color: #888;
+        margin-bottom: 30px;
+    }
 
-        .menu-item {
-            font-size: 18px;
-            margin: 14px 0;
-            cursor: pointer;
-            color: #d0d0d0;
-        }
+    .menu-item {
+        font-size: 20px;
+        margin: 10px 0;
+        color: #4da6ff; /* blue text */
+    }
 
-        .menu-item:hover {
-            color: #ffffff;
-        }
+    .menu-item .arrow {
+        color: #7fcaff; /* light blue highlight */
+        margin-right: 8px;
+    }
 
-        .prefix {
-            color: #ffffff;
-            margin-right: 6px;
-        }
-    </style>
+    /* About page */
+    .divider {
+        border-bottom: 2px dashed #666;
+        margin: 15px 0;
+        width: 90%;
+    }
+
+    .about-text {
+        color: #ddd;
+        width: 90%;
+        line-height: 1.4;
+    }
+
+    .back {
+        color: #4da6ff;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    /* Loading screen */
+    .loading-text {
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+
+    .loading-sub {
+        color: #ccc;
+        margin-top: 10px;
+    }
+
+    /* Spinner */
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .spinner {
+        font-family: "Della Respira", serif;
+        font-size: 28px;
+        display: inline-block;
+        animation: spin 1.2s linear infinite;
+        margin-left: 10px;
+    }
+
+    .version {
+        color: #e6c300;
+        margin-top: 40px;
+    }
+</style>
 </head>
 
 <body>
 
-    <div class="menu-title">SqueezeBox Lite Engine</div>
+<!-- ========================= -->
+<!--        LAUNCHER          -->
+<!-- ========================= -->
+<div id="launcher" class="screen visible">
+    <div class="launcher-title">SqueezeBox lite Launcher</div>
+    <div class="launcher-sub">The smartest Compressor you will ever use.</div>
+
+    <div id="menu">
+        <div class="menu-item"><span class="arrow">></span> Launch SqueezeBox lite</div>
+        <div class="menu-item"><span class="arrow" style="visibility:hidden">></span> What is SqueezeBox lite?</div>
+        <div class="menu-item"><span class="arrow" style="visibility:hidden">></span> Exit to Download page</div>
+    </div>
+
+    <div class="version">version 1.0 beta testing</div>
+</div>
+
+
+<!-- ========================= -->
+<!--        ABOUT PAGE        -->
+<!-- ========================= -->
+<div id="about" class="screen">
+    <div style="font-size:24px;">What is SqueezeBox lite?</div>
     <div class="divider"></div>
 
-    <div class="menu">
-        <div class="menu-item"><span class="prefix">></span> Launch Engine</div>
-        <div class="menu-item"><span class="prefix">></span> About</div>
-        <div class="menu-item"><span class="prefix">></span> Exit</div>
+    <div class="about-text">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut interdum commodo odio, non tempor risus. Vivamus sed sapien a enim sagittis lacinia. Mauris tortor dui, venenatis vel quam id, porttitor tempus ligula.
     </div>
+
+    <div class="divider"></div>
+    <div class="back" onclick="showScreen('launcher')">> Back</div>
+
+    <div class="version">version 1.0 beta testing</div>
+</div>
+
+
+<!-- ========================= -->
+<!--       LOADING PAGE       -->
+<!-- ========================= -->
+<div id="loading" class="screen">
+    <div class="loading-text">Loading... <span class="spinner">/</span></div>
+
+    <div class="loading-sub">
+        This process usually takes a few seconds<br>
+        Not loading quickly? Please report the problem on our official itch.io page
+    </div>
+
+    <div class="version">version 1.0 beta testing</div>
+</div>
+
+
+<!-- ========================= -->
+<!--       ENGINE PAGE        -->
+<!-- ========================= -->
+<div id="engine" class="screen">
+    <div style="font-size:24px;">SqueezeBox lite Engine</div>
+    <div class="divider"></div>
+
+    <div class="about-text">[ Your compression UI will go here ]</div>
+
+    <div class="divider"></div>
+    <div class="back" onclick="showScreen('launcher')">> Back</div>
+
+    <div class="version">version 1.0 beta testing</div>
+</div>
+
+
+<script>
+/* ============================
+   SCREEN SWITCHING
+============================ */
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('visible'));
+    document.getElementById(id).classList.add('visible');
+}
+
+/* ============================
+   LAUNCHER ARROW NAVIGATION
+============================ */
+let index = 0;
+const items = document.querySelectorAll('#menu .menu-item');
+
+function updateArrows() {
+    items.forEach((item, i) => {
+        const arrow = item.querySelector('.arrow');
+        arrow.style.visibility = (i === index) ? "visible" : "hidden";
+    });
+}
+
+updateArrows();
+
+document.addEventListener('keydown', (e) => {
+    if (!document.getElementById('launcher').classList.contains('visible')) return;
+
+    if (e.key === "ArrowDown") {
+        index = (index + 1) % items.length;
+        updateArrows();
+    }
+
+    if (e.key === "ArrowUp") {
+        index = (index - 1 + items.length) % items.length;
+        updateArrows();
+    }
+
+    if (e.key === "Enter") {
+        if (index === 0) {
+            showScreen('loading');
+            setTimeout(() => showScreen('engine'), 2000);
+        }
+        if (index === 1) showScreen('about');
+        if (index === 2) window.location.href = "https://officalspongebucket.github.io/squeezebox-website/";
+    }
+});
+</script>
 
 </body>
 </html>
