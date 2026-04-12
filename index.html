@@ -4,14 +4,21 @@
 <meta charset="UTF-8">
 <title>SqueezeBox Lite</title>
 
+<!-- Open Sauce Font -->
+<link href="https://fonts.cdnfonts.com/css/open-sauce-one" rel="stylesheet">
+
 <style>
     body {
         background: black;
         color: white;
-        font-family: "Courier New", monospace;
-        font-weight: bold;
+        font-family: 'Open Sauce One', sans-serif;
         margin: 0;
         padding: 40px;
+    }
+
+    #logo {
+        width: 260px;
+        margin-bottom: 20px;
     }
 
     h1 {
@@ -27,6 +34,7 @@
     .label {
         color: #7fcaff;
         margin: 15px 0 5px 0;
+        font-weight: 600;
     }
 
     .row {
@@ -50,13 +58,14 @@
 
     button {
         margin-top: 15px;
-        padding: 6px 16px;
+        padding: 8px 18px;
         background: #7fcaff;
         border: none;
         color: black;
         font-family: inherit;
         font-weight: bold;
         cursor: pointer;
+        border-radius: 4px;
     }
 
     button:active {
@@ -72,6 +81,7 @@
     .version {
         color: #e6c300;
         margin-top: 30px;
+        font-weight: 600;
     }
 
     a.download-link {
@@ -83,6 +93,8 @@
 </head>
 
 <body>
+
+<img id="logo" src="logo.png" alt="SqueezeBox Lite Logo">
 
 <h1>SqueezeBox Lite</h1>
 <div class="subtitle">A lightweight, fast compression tool for low-power devices.</div>
@@ -156,7 +168,6 @@ document.getElementById('compress-btn').addEventListener('click', () => {
 
     const originalSize = file.size;
 
-    // Fake compression ratio based on level
     let ratio = 0.7;
     if (level === "fast") ratio = 0.8;
     if (level === "balanced") ratio = 0.6;
