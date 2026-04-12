@@ -7,9 +7,7 @@
 <link href="https://fonts.cdnfonts.com/css/open-sauce-one" rel="stylesheet">
 
 <style>
-    * {
-        box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
         background: #ffffff;
@@ -228,9 +226,7 @@
     }
 
     @media (max-width: 800px) {
-        .app-shell {
-            grid-template-columns: 1fr;
-        }
+        .app-shell { grid-template-columns: 1fr; }
     }
 </style>
 </head>
@@ -249,9 +245,17 @@
         <div id="history-list" class="history-list"></div>
     </aside>
 
-    <!-- Compression panel -->
+    <!-- Compression / Decompression panel -->
     <main class="compress-panel">
         <div class="subtitle">A lightweight, modern compression tool for everyday files.</div>
+
+        <div class="row">
+            <div class="label">Mode</div>
+            <div class="options-group">
+                <label><input type="radio" name="mode" value="compress" checked> Compress</label>
+                <label><input type="radio" name="mode" value="decompress"> Decompress</label>
+            </div>
+        </div>
 
         <div class="row">
             <div class="label">Input file</div>
@@ -284,13 +288,16 @@
             </div>
         </div>
 
-        <button id="compress-btn">Compress</button>
+        <button id="compress-btn">Run</button>
 
         <div id="result" class="result"></div>
     </main>
 </div>
 
 <div class="version">version 2.6 beta testing</div>
+
+<!-- JSZip CDN -->
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
 <script>
 function getSelected(name) {
@@ -370,7 +377,6 @@ function saveHistoryEntry(entry) {
     }
 
     history.push(entry);
-
     if (history.length > 30) {
         history = history.slice(history.length - 30);
     }
@@ -379,7 +385,16 @@ function saveHistoryEntry(entry) {
     loadHistory();
 }
 
-document.getElementById('compress-btn').addEventListener('click', () => {
+function readFileAsArrayBuffer(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = e => reject(e);
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+document.getElementById('compress-btn').addEventListener('click', async () => {
     const fileInput = document.getElementById('file-input');
     const result = document.getElementById('result');
     result.textContent = "";
@@ -390,58 +405,112 @@ document.getElementById('compress-btn').addEventListener('click', () => {
     }
 
     const file = fileInput.files[0];
+    const mode = getSelected("mode");
     const level = getSelected("level");
     const format = getSelected("format");
     const fastMode = document.getElementById('fast-mode').checked;
     const showSizes = document.getElementById('show-sizes').checked;
     const autoDownload = document.getElementById('auto-download').checked;
 
-    const originalSize = file.size;
+    try {
+        const data = await readFileAsArrayBuffer(file);
+        const originalSize = file.size;
 
-    // Fake compression ratio (still demo logic for 2.6)
-    let ratio = 0.7;
-    if (level === "fast") ratio = 0.8;
-    if (level === "balanced") ratio = 0.6;
-    if (level === "max") ratio = 0.4;
-    if (fastMode) ratio += 0.05;
+        if (mode === "compress") {
+            const zip = new JSZip();
+            zip.file(file.name, data);
 
-    const compressedSize = Math.max(100, Math.floor(originalSize * ratio));
+            // compression level mapping
+            let compressionLevel = "STORE";
+            if (level === "balanced") compressionLevel = "DEFLATE";
+            if (level === "max") compressionLevel = "DEFLATE";
 
-    const fakeBlob = new Blob(["SQUEEZEBOX_LITE_FAKE_DATA"], { type: "application/octet-stream" });
-    const url = URL.createObjectURL(fakeBlob);
+            const blob = await zip.generateAsync({
+                type: "blob",
+                compression: compressionLevel,
+                compressionOptions: level === "max" ? { level: 9 } :
+                                    level === "balanced" ? { level: 5 } :
+                                    { level: 1 }
+            });
 
-    const baseName = file.name.replace(/\.[^/.]+$/, "");
-    const outputName = baseName + "." + format;
+            const baseName = file.name.replace(/\.[^/.]+$/, "");
+            const outputName = baseName + "." + format;
 
-    let text = "Compression complete.\n";
-    text += "Output: " + outputName + "\n";
-    text += "Level: " + level + (fastMode ? " (fast mode)" : "") + "\n";
+            let text = "Compression complete.\n";
+            text += "Output: " + outputName + "\n";
+            text += "Mode: compress\n";
+            text += "Level: " + level + (fastMode ? " (fast mode – visual only)" : "") + "\n";
 
-    if (showSizes) {
-        text += "\nOriginal size:  " + formatBytes(originalSize);
-        text += "\nEstimated size: " + formatBytes(compressedSize) + "\n";
-    }
+            if (showSizes) {
+                text += "\nOriginal size:  " + formatBytes(originalSize);
+                text += "\nCompressed size: " + formatBytes(blob.size) + "\n";
+            }
 
-    text += "\nDownload: ";
+            text += "\nDownload: ";
+            result.textContent = text;
 
-    result.textContent = text;
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = outputName;
+            link.textContent = outputName;
+            link.className = "download-link";
+            result.appendChild(link);
 
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = outputName;
-    link.textContent = outputName;
-    link.className = "download-link";
+            saveHistoryEntry({
+                fileName: file.name,
+                outputName: outputName,
+                timestamp: Date.now()
+            });
 
-    result.appendChild(link);
+            if (autoDownload) link.click();
 
-    saveHistoryEntry({
-        fileName: file.name,
-        outputName: outputName,
-        timestamp: Date.now()
-    });
+        } else {
+            // Decompress: expect a .zip or .sqz containing a single file
+            const zip = await JSZip.loadAsync(data);
+            const files = Object.keys(zip.files).filter(name => !zip.files[name].dir);
 
-    if (autoDownload) {
-        link.click();
+            if (files.length !== 1) {
+                result.textContent = "This archive contains multiple files. SqueezeBox Lite 2.6 only supports archives with a single file inside.";
+                return;
+            }
+
+            const entry = zip.files[files[0]];
+            const innerData = await entry.async("arraybuffer");
+            const innerBlob = new Blob([innerData]);
+            const outputName = entry.name;
+
+            let text = "Decompression complete.\n";
+            text += "Output: " + outputName + "\n";
+            text += "Mode: decompress\n";
+
+            if (showSizes) {
+                text += "\nArchive size: " + formatBytes(originalSize);
+                text += "\nExtracted size: " + formatBytes(innerBlob.size) + "\n";
+            }
+
+            text += "\nDownload: ";
+            result.textContent = text;
+
+            const url = URL.createObjectURL(innerBlob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = outputName;
+            link.textContent = outputName;
+            link.className = "download-link";
+            result.appendChild(link);
+
+            saveHistoryEntry({
+                fileName: file.name,
+                outputName: outputName,
+                timestamp: Date.now()
+            });
+
+            if (autoDownload) link.click();
+        }
+    } catch (err) {
+        console.error(err);
+        result.textContent = "Something went wrong while processing this file.";
     }
 });
 
