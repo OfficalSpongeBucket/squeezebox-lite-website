@@ -12,8 +12,8 @@
     }
 
     body {
-        background: #05070a;
-        color: #f5f5f5;
+        background: #ffffff;
+        color: #1a1a1a;
         font-family: 'Open Sauce One', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
         margin: 0;
         padding: 24px;
@@ -23,7 +23,6 @@
         gap: 24px;
     }
 
-    /* Logo */
     .logo-wrapper {
         width: 100%;
         display: flex;
@@ -36,7 +35,6 @@
         height: auto;
     }
 
-    /* Main layout */
     .app-shell {
         width: 100%;
         max-width: 980px;
@@ -48,18 +46,18 @@
 
     /* History panel */
     .history-panel {
-        background: #0b0f16;
+        background: #ffffff;
         border-radius: 10px;
         padding: 12px;
-        box-shadow: 0 0 0 1px rgba(255,255,255,0.03), 0 12px 30px rgba(0,0,0,0.6);
         max-height: 420px;
         overflow-y: auto;
+        border: 1px solid #e5e7eb;
     }
 
     .history-title {
         font-size: 13px;
         font-weight: 600;
-        color: #9fb3ff;
+        color: #4b5563;
         margin-bottom: 8px;
         text-transform: uppercase;
         letter-spacing: 0.06em;
@@ -67,7 +65,7 @@
 
     .history-empty {
         font-size: 12px;
-        color: #7b8190;
+        color: #9ca3af;
         margin-top: 4px;
     }
 
@@ -79,33 +77,34 @@
     }
 
     .history-card {
-        background: #111623;
+        background: #f3f4f6;
         border-radius: 8px;
         padding: 8px 10px;
         font-size: 12px;
-        border: 1px solid rgba(255,255,255,0.04);
+        border: 1px solid #e5e7eb;
         display: flex;
         flex-direction: column;
         gap: 2px;
     }
 
     .history-filename {
-        color: #e5e9ff;
+        color: #111827;
         font-weight: 500;
         word-break: break-all;
     }
 
     .history-timestamp {
-        color: #7b8190;
+        color: #6b7280;
         font-size: 11px;
     }
 
     /* Compression panel */
     .compress-panel {
-        background: #0b0f16;
+        background: #ffffff;
         border-radius: 12px;
         padding: 18px 20px 20px;
-        box-shadow: 0 0 0 1px rgba(255,255,255,0.03), 0 16px 40px rgba(0,0,0,0.7);
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
         display: flex;
         flex-direction: column;
         gap: 14px;
@@ -113,7 +112,7 @@
 
     .subtitle {
         font-size: 13px;
-        color: #8b92a3;
+        color: #6b7280;
         margin-bottom: 4px;
     }
 
@@ -126,24 +125,24 @@
     .label {
         font-size: 13px;
         font-weight: 600;
-        color: #c7d2ff;
+        color: #111827;
     }
 
     input[type="file"] {
         font-family: inherit;
         font-size: 13px;
-        color: #e5e5e5;
-        background: #111623;
+        color: #111827;
+        background: #f9fafb;
         border-radius: 8px;
         padding: 8px;
-        border: 1px solid rgba(255,255,255,0.08);
+        border: 1px solid #d1d5db;
         width: 100%;
     }
 
     input[type="file"]::file-selector-button {
-        background: #1b2335;
+        background: #e5f0ff;
         border: none;
-        color: #e5e9ff;
+        color: #1d4ed8;
         padding: 6px 10px;
         margin-right: 8px;
         border-radius: 6px;
@@ -163,13 +162,13 @@
         align-items: center;
         gap: 5px;
         cursor: pointer;
-        color: #d0d4e0;
+        color: #374151;
         font-weight: 400;
     }
 
     .options-group input[type="radio"],
     .options-group input[type="checkbox"] {
-        accent-color: #7fb3ff;
+        accent-color: #4f8dff;
         cursor: pointer;
     }
 
@@ -177,40 +176,40 @@
         align-self: flex-start;
         margin-top: 4px;
         padding: 8px 18px;
-        background: linear-gradient(135deg, #7fb3ff, #4f8dff);
+        background: linear-gradient(135deg, #4f8dff, #2563eb);
         border: none;
-        color: #05070a;
+        color: #ffffff;
         font-family: inherit;
         font-weight: 600;
         font-size: 13px;
         cursor: pointer;
         border-radius: 999px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
         transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.08s ease;
     }
 
     button:hover {
         filter: brightness(1.05);
-        box-shadow: 0 10px 26px rgba(0,0,0,0.7);
+        box-shadow: 0 10px 26px rgba(37, 99, 235, 0.4);
         transform: translateY(-1px);
     }
 
     button:active {
         filter: brightness(0.97);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.7);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
         transform: translateY(0);
     }
 
     .result {
         margin-top: 6px;
-        color: #d7d9e4;
+        color: #111827;
         font-size: 13px;
         white-space: pre-line;
         min-height: 32px;
     }
 
     a.download-link {
-        color: #9fc3ff;
+        color: #2563eb;
         text-decoration: none;
         font-weight: 500;
     }
@@ -222,7 +221,7 @@
     .version {
         margin-top: 8px;
         font-size: 12px;
-        color: #f2d46b;
+        color: #6b7280;
         font-weight: 600;
         text-align: center;
         opacity: 0.9;
@@ -291,7 +290,7 @@
     </main>
 </div>
 
-<div class="version">version 2.5 beta testing</div>
+<div class="version">version 2.6 beta testing</div>
 
 <script>
 function getSelected(name) {
@@ -372,7 +371,6 @@ function saveHistoryEntry(entry) {
 
     history.push(entry);
 
-    // keep last 30 entries
     if (history.length > 30) {
         history = history.slice(history.length - 30);
     }
@@ -400,7 +398,7 @@ document.getElementById('compress-btn').addEventListener('click', () => {
 
     const originalSize = file.size;
 
-    // Fake compression ratio (still demo logic for 2.5)
+    // Fake compression ratio (still demo logic for 2.6)
     let ratio = 0.7;
     if (level === "fast") ratio = 0.8;
     if (level === "balanced") ratio = 0.6;
@@ -436,7 +434,6 @@ document.getElementById('compress-btn').addEventListener('click', () => {
 
     result.appendChild(link);
 
-    // Save to history (real, persistent)
     saveHistoryEntry({
         fileName: file.name,
         outputName: outputName,
@@ -448,7 +445,6 @@ document.getElementById('compress-btn').addEventListener('click', () => {
     }
 });
 
-// initial history load
 loadHistory();
 </script>
 
