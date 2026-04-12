@@ -262,6 +262,14 @@
             <input id="file-input" type="file">
         </div>
 
+        <!-- WARNING BOX -->
+        <div id="compress-warning" 
+             style="display:none; background:#fff7d6; border:1px solid #f5d27a; 
+                    padding:10px 12px; border-radius:8px; font-size:12px; 
+                    color:#7a5a00;">
+            ⚠️ This file is unlikely to compress. It may even get bigger.
+        </div>
+
         <div class="row">
             <div class="label">Compression level</div>
             <div class="options-group">
@@ -294,24 +302,42 @@
     </main>
 </div>
 
-<div class="version">version 2.6 beta testing</div>
+<div class="version">version 2.7</div>
 
 <!-- JSZip CDN -->
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
 <script>
-function getSelected(name) {
-    const el = document.querySelector('input[name="' + name + '"]:checked');
-    return el ? el.value : null;
-}
+/* ------------------------------
+   WARNING SYSTEM
+------------------------------ */
+const warningBox = document.getElementById("compress-warning");
 
-function formatBytes(bytes) {
-    if (!bytes || bytes <= 0) return "0 B";
-    const units = ["B", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return (bytes / Math.pow(1024, i)).toFixed(2) + " " + units[i];
-}
+document.getElementById("file-input").addEventListener("change", () => {
+    const file = document.getElementById("file-input").files[0];
+    if (!file) {
+        warningBox.style.display = "none";
+        return;
+    }
 
+    const name = file.name.toLowerCase();
+    const ext = name.split(".").pop();
+
+    const alreadyCompressed = [
+        "png","jpg","jpeg","gif","mp4","mov","zip","rar","7z",
+        "pdf","mp3","ogg","docx","xlsx","pptx","webp"
+    ];
+
+    if (alreadyCompressed.includes(ext) || file.size < 2000) {
+        warningBox.style.display = "block";
+    } else {
+        warningBox.style.display = "none";
+    }
+});
+
+/* ------------------------------
+   HISTORY SYSTEM
+------------------------------ */
 function formatTimestamp(date) {
     const now = new Date();
     const isToday = date.toDateString() === now.toDateString();
@@ -332,13 +358,7 @@ function loadHistory() {
     const emptyEl = document.getElementById('history-empty');
     listEl.innerHTML = "";
 
-    let history = [];
-    try {
-        const raw = localStorage.getItem('squeezebox_history');
-        if (raw) history = JSON.parse(raw);
-    } catch (e) {
-        history = [];
-    }
+    let history = JSON.parse(localStorage.getItem('squeezebox_history') || "[]");
 
     if (!history.length) {
         emptyEl.style.display = "block";
@@ -347,15 +367,14 @@ function loadHistory() {
 
     emptyEl.style.display = "none";
 
-    history
-        .sort((a, b) => b.timestamp - a.timestamp)
+    history.sort((a, b) => b.timestamp - a.timestamp)
         .forEach(entry => {
             const card = document.createElement('div');
             card.className = 'history-card';
 
             const nameEl = document.createElement('div');
             nameEl.className = 'history-filename';
-            nameEl.textContent = entry.outputName || entry.fileName;
+            nameEl.textContent = entry.outputName;
 
             const timeEl = document.createElement('div');
             timeEl.className = 'history-timestamp';
@@ -368,23 +387,16 @@ function loadHistory() {
 }
 
 function saveHistoryEntry(entry) {
-    let history = [];
-    try {
-        const raw = localStorage.getItem('squeezebox_history');
-        if (raw) history = JSON.parse(raw);
-    } catch (e) {
-        history = [];
-    }
-
+    let history = JSON.parse(localStorage.getItem('squeezebox_history') || "[]");
     history.push(entry);
-    if (history.length > 30) {
-        history = history.slice(history.length - 30);
-    }
-
+    if (history.length > 30) history = history.slice(-30);
     localStorage.setItem('squeezebox_history', JSON.stringify(history));
     loadHistory();
 }
 
+/* ------------------------------
+   COMPRESSION / DECOMPRESSION
+------------------------------ */
 function readFileAsArrayBuffer(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -399,35 +411,28 @@ document.getElementById('compress-btn').addEventListener('click', async () => {
     const result = document.getElementById('result');
     result.textContent = "";
 
-    if (!fileInput.files || fileInput.files.length === 0) {
+    if (!fileInput.files.length) {
         result.textContent = "No file selected.";
         return;
     }
 
     const file = fileInput.files[0];
-    const mode = getSelected("mode");
-    const level = getSelected("level");
-    const format = getSelected("format");
-    const fastMode = document.getElementById('fast-mode').checked;
+    const mode = document.querySelector('input[name="mode"]:checked').value;
+    const level = document.querySelector('input[name="level"]:checked').value;
+    const format = document.querySelector('input[name="format"]:checked').value;
     const showSizes = document.getElementById('show-sizes').checked;
     const autoDownload = document.getElementById('auto-download').checked;
 
     try {
         const data = await readFileAsArrayBuffer(file);
-        const originalSize = file.size;
 
         if (mode === "compress") {
             const zip = new JSZip();
             zip.file(file.name, data);
 
-            // compression level mapping
-            let compressionLevel = "STORE";
-            if (level === "balanced") compressionLevel = "DEFLATE";
-            if (level === "max") compressionLevel = "DEFLATE";
-
             const blob = await zip.generateAsync({
                 type: "blob",
-                compression: compressionLevel,
+                compression: level === "fast" ? "STORE" : "DEFLATE",
                 compressionOptions: level === "max" ? { level: 9 } :
                                     level === "balanced" ? { level: 5 } :
                                     { level: 1 }
@@ -438,12 +443,10 @@ document.getElementById('compress-btn').addEventListener('click', async () => {
 
             let text = "Compression complete.\n";
             text += "Output: " + outputName + "\n";
-            text += "Mode: compress\n";
-            text += "Level: " + level + (fastMode ? " (fast mode – visual only)" : "") + "\n";
 
             if (showSizes) {
-                text += "\nOriginal size:  " + formatBytes(originalSize);
-                text += "\nCompressed size: " + formatBytes(blob.size) + "\n";
+                text += "\nOriginal size: " + file.size + " bytes";
+                text += "\nCompressed size: " + blob.size + " bytes\n";
             }
 
             text += "\nDownload: ";
@@ -457,21 +460,16 @@ document.getElementById('compress-btn').addEventListener('click', async () => {
             link.className = "download-link";
             result.appendChild(link);
 
-            saveHistoryEntry({
-                fileName: file.name,
-                outputName: outputName,
-                timestamp: Date.now()
-            });
+            saveHistoryEntry({ outputName, timestamp: Date.now() });
 
             if (autoDownload) link.click();
 
         } else {
-            // Decompress: expect a .zip or .sqz containing a single file
             const zip = await JSZip.loadAsync(data);
             const files = Object.keys(zip.files).filter(name => !zip.files[name].dir);
 
             if (files.length !== 1) {
-                result.textContent = "This archive contains multiple files. SqueezeBox Lite 2.6 only supports archives with a single file inside.";
+                result.textContent = "This archive contains multiple files. Only single-file archives are supported.";
                 return;
             }
 
@@ -482,11 +480,10 @@ document.getElementById('compress-btn').addEventListener('click', async () => {
 
             let text = "Decompression complete.\n";
             text += "Output: " + outputName + "\n";
-            text += "Mode: decompress\n";
 
             if (showSizes) {
-                text += "\nArchive size: " + formatBytes(originalSize);
-                text += "\nExtracted size: " + formatBytes(innerBlob.size) + "\n";
+                text += "\nArchive size: " + file.size + " bytes";
+                text += "\nExtracted size: " + innerBlob.size + " bytes\n";
             }
 
             text += "\nDownload: ";
@@ -500,11 +497,7 @@ document.getElementById('compress-btn').addEventListener('click', async () => {
             link.className = "download-link";
             result.appendChild(link);
 
-            saveHistoryEntry({
-                fileName: file.name,
-                outputName: outputName,
-                timestamp: Date.now()
-            });
+            saveHistoryEntry({ outputName, timestamp: Date.now() });
 
             if (autoDownload) link.click();
         }
