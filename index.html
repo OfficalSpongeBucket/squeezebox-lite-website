@@ -2,138 +2,296 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<title>SqueezeBox Lite</title>
 
-<!-- Open Sauce Font -->
 <link href="https://fonts.cdnfonts.com/css/open-sauce-one" rel="stylesheet">
 
 <style>
+    * {
+        box-sizing: border-box;
+    }
+
     body {
-        background: black;
-        color: white;
-        font-family: 'Open Sauce One', sans-serif;
+        background: #05070a;
+        color: #f5f5f5;
+        font-family: 'Open Sauce One', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
         margin: 0;
-        padding: 40px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
     }
 
-    #logo {
-        width: 260px;
-        margin-bottom: 20px;
+    /* Logo */
+    .logo-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        margin-top: 8px;
     }
 
-    h1 {
-        font-size: 28px;
-        margin: 0 0 10px 0;
+    .logo-wrapper img {
+        max-width: 260px;
+        height: auto;
+    }
+
+    /* Main layout */
+    .app-shell {
+        width: 100%;
+        max-width: 980px;
+        display: grid;
+        grid-template-columns: 180px 1fr;
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    /* History panel */
+    .history-panel {
+        background: #0b0f16;
+        border-radius: 10px;
+        padding: 12px;
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.03), 0 12px 30px rgba(0,0,0,0.6);
+        max-height: 420px;
+        overflow-y: auto;
+    }
+
+    .history-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #9fb3ff;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .history-empty {
+        font-size: 12px;
+        color: #7b8190;
+        margin-top: 4px;
+    }
+
+    .history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 4px;
+    }
+
+    .history-card {
+        background: #111623;
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 12px;
+        border: 1px solid rgba(255,255,255,0.04);
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .history-filename {
+        color: #e5e9ff;
+        font-weight: 500;
+        word-break: break-all;
+    }
+
+    .history-timestamp {
+        color: #7b8190;
+        font-size: 11px;
+    }
+
+    /* Compression panel */
+    .compress-panel {
+        background: #0b0f16;
+        border-radius: 12px;
+        padding: 18px 20px 20px;
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.03), 0 16px 40px rgba(0,0,0,0.7);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
     }
 
     .subtitle {
-        color: #888;
-        margin-bottom: 25px;
-    }
-
-    .label {
-        color: #7fcaff;
-        margin: 15px 0 5px 0;
-        font-weight: 600;
+        font-size: 13px;
+        color: #8b92a3;
+        margin-bottom: 4px;
     }
 
     .row {
-        margin-bottom: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #c7d2ff;
     }
 
     input[type="file"] {
         font-family: inherit;
-        color: white;
+        font-size: 13px;
+        color: #e5e5e5;
+        background: #111623;
+        border-radius: 8px;
+        padding: 8px;
+        border: 1px solid rgba(255,255,255,0.08);
+        width: 100%;
+    }
+
+    input[type="file"]::file-selector-button {
+        background: #1b2335;
+        border: none;
+        color: #e5e9ff;
+        padding: 6px 10px;
+        margin-right: 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
     }
 
     .options-group {
-        margin-bottom: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 18px;
+        font-size: 13px;
     }
 
     .options-group label {
-        font-weight: normal;
-        margin-right: 15px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        color: #d0d4e0;
+        font-weight: 400;
+    }
+
+    .options-group input[type="radio"],
+    .options-group input[type="checkbox"] {
+        accent-color: #7fb3ff;
         cursor: pointer;
     }
 
     button {
-        margin-top: 15px;
+        align-self: flex-start;
+        margin-top: 4px;
         padding: 8px 18px;
-        background: #7fcaff;
+        background: linear-gradient(135deg, #7fb3ff, #4f8dff);
         border: none;
-        color: black;
+        color: #05070a;
         font-family: inherit;
-        font-weight: bold;
+        font-weight: 600;
+        font-size: 13px;
         cursor: pointer;
-        border-radius: 4px;
+        border-radius: 999px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+        transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.08s ease;
+    }
+
+    button:hover {
+        filter: brightness(1.05);
+        box-shadow: 0 10px 26px rgba(0,0,0,0.7);
+        transform: translateY(-1px);
     }
 
     button:active {
-        background: #4da6ff;
+        filter: brightness(0.97);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.7);
+        transform: translateY(0);
     }
 
     .result {
-        margin-top: 20px;
-        color: #ddd;
+        margin-top: 6px;
+        color: #d7d9e4;
+        font-size: 13px;
         white-space: pre-line;
-    }
-
-    .version {
-        color: #e6c300;
-        margin-top: 30px;
-        font-weight: 600;
+        min-height: 32px;
     }
 
     a.download-link {
-        color: #7fcaff;
+        color: #9fc3ff;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    a.download-link:hover {
         text-decoration: underline;
-        cursor: pointer;
+    }
+
+    .version {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #f2d46b;
+        font-weight: 600;
+        text-align: center;
+        opacity: 0.9;
+    }
+
+    @media (max-width: 800px) {
+        .app-shell {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 </head>
 
 <body>
 
-<img id="logo" src="image_2026-04-12_105509207.png" alt="SqueezeBox Lite Logo">
-
-<h1>SqueezeBox Lite</h1>
-<div class="subtitle">A lightweight, fast compression tool for low-power devices.</div>
-
-<div class="row">
-    <div class="label">Input file</div>
-    <input id="file-input" type="file">
+<div class="logo-wrapper">
+    <img src="image_2026-04-12_105509207.png" alt="SqueezeBox Lite Logo">
 </div>
 
-<div class="row">
-    <div class="label">Compression level</div>
-    <div class="options-group">
-        <label><input type="radio" name="level" value="fast" checked> Fast</label>
-        <label><input type="radio" name="level" value="balanced"> Balanced</label>
-        <label><input type="radio" name="level" value="max"> Maximum</label>
-    </div>
+<div class="app-shell">
+    <!-- History panel -->
+    <aside class="history-panel">
+        <div class="history-title">History</div>
+        <div id="history-empty" class="history-empty">No files squeezed yet.</div>
+        <div id="history-list" class="history-list"></div>
+    </aside>
+
+    <!-- Compression panel -->
+    <main class="compress-panel">
+        <div class="subtitle">A lightweight, modern compression tool for everyday files.</div>
+
+        <div class="row">
+            <div class="label">Input file</div>
+            <input id="file-input" type="file">
+        </div>
+
+        <div class="row">
+            <div class="label">Compression level</div>
+            <div class="options-group">
+                <label><input type="radio" name="level" value="fast" checked> Fast</label>
+                <label><input type="radio" name="level" value="balanced"> Balanced</label>
+                <label><input type="radio" name="level" value="max"> Maximum</label>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="label">Output format</div>
+            <div class="options-group">
+                <label><input type="radio" name="format" value="zip" checked> .zip</label>
+                <label><input type="radio" name="format" value="sqz"> .sqz</label>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="label">Options</div>
+            <div class="options-group" style="flex-direction: column; align-items: flex-start;">
+                <label><input type="checkbox" id="fast-mode"> Fast mode (skip extra metadata)</label>
+                <label><input type="checkbox" id="show-sizes" checked> Show file size before/after</label>
+                <label><input type="checkbox" id="auto-download" checked> Auto-download when done</label>
+            </div>
+        </div>
+
+        <button id="compress-btn">Compress</button>
+
+        <div id="result" class="result"></div>
+    </main>
 </div>
 
-<div class="row">
-    <div class="label">Output format</div>
-    <div class="options-group">
-        <label><input type="radio" name="format" value="zip" checked> .zip</label>
-        <label><input type="radio" name="format" value="sqz"> .sqz</label>
-    </div>
-</div>
-
-<div class="row">
-    <div class="label">Options</div>
-    <div class="options-group">
-        <label><input type="checkbox" id="fast-mode"> Fast mode (skip extra metadata)</label><br>
-        <label><input type="checkbox" id="show-sizes" checked> Show file size before/after</label><br>
-        <label><input type="checkbox" id="auto-download" checked> Auto-download when done</label>
-    </div>
-</div>
-
-<button id="compress-btn">Compress</button>
-
-<div id="result" class="result"></div>
-
-<div class="version">version 2.4 beta testing</div>
+<div class="version">version 2.5 beta testing</div>
 
 <script>
 function getSelected(name) {
@@ -142,10 +300,85 @@ function getSelected(name) {
 }
 
 function formatBytes(bytes) {
-    if (bytes === 0) return "0 B";
+    if (!bytes || bytes <= 0) return "0 B";
     const units = ["B", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
     return (bytes / Math.pow(1024, i)).toFixed(2) + " " + units[i];
+}
+
+function formatTimestamp(date) {
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const yesterday = new Date();
+    yesterday.setDate(now.getDate() - 1);
+    const isYesterday = date.toDateString() === yesterday.toDateString();
+
+    let dayPart = date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    if (isToday) dayPart = "Today";
+    else if (isYesterday) dayPart = "Yesterday";
+
+    const timePart = date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+    return dayPart + " " + timePart;
+}
+
+function loadHistory() {
+    const listEl = document.getElementById('history-list');
+    const emptyEl = document.getElementById('history-empty');
+    listEl.innerHTML = "";
+
+    let history = [];
+    try {
+        const raw = localStorage.getItem('squeezebox_history');
+        if (raw) history = JSON.parse(raw);
+    } catch (e) {
+        history = [];
+    }
+
+    if (!history.length) {
+        emptyEl.style.display = "block";
+        return;
+    }
+
+    emptyEl.style.display = "none";
+
+    history
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .forEach(entry => {
+            const card = document.createElement('div');
+            card.className = 'history-card';
+
+            const nameEl = document.createElement('div');
+            nameEl.className = 'history-filename';
+            nameEl.textContent = entry.outputName || entry.fileName;
+
+            const timeEl = document.createElement('div');
+            timeEl.className = 'history-timestamp';
+            timeEl.textContent = formatTimestamp(new Date(entry.timestamp));
+
+            card.appendChild(nameEl);
+            card.appendChild(timeEl);
+            listEl.appendChild(card);
+        });
+}
+
+function saveHistoryEntry(entry) {
+    let history = [];
+    try {
+        const raw = localStorage.getItem('squeezebox_history');
+        if (raw) history = JSON.parse(raw);
+    } catch (e) {
+        history = [];
+    }
+
+    history.push(entry);
+
+    // keep last 30 entries
+    if (history.length > 30) {
+        history = history.slice(history.length - 30);
+    }
+
+    localStorage.setItem('squeezebox_history', JSON.stringify(history));
+    loadHistory();
 }
 
 document.getElementById('compress-btn').addEventListener('click', () => {
@@ -167,6 +400,7 @@ document.getElementById('compress-btn').addEventListener('click', () => {
 
     const originalSize = file.size;
 
+    // Fake compression ratio (still demo logic for 2.5)
     let ratio = 0.7;
     if (level === "fast") ratio = 0.8;
     if (level === "balanced") ratio = 0.6;
@@ -178,8 +412,11 @@ document.getElementById('compress-btn').addEventListener('click', () => {
     const fakeBlob = new Blob(["SQUEEZEBOX_LITE_FAKE_DATA"], { type: "application/octet-stream" });
     const url = URL.createObjectURL(fakeBlob);
 
+    const baseName = file.name.replace(/\.[^/.]+$/, "");
+    const outputName = baseName + "." + format;
+
     let text = "Compression complete.\n";
-    text += "Output format: " + format + "\n";
+    text += "Output: " + outputName + "\n";
     text += "Level: " + level + (fastMode ? " (fast mode)" : "") + "\n";
 
     if (showSizes) {
@@ -193,16 +430,26 @@ document.getElementById('compress-btn').addEventListener('click', () => {
 
     const link = document.createElement("a");
     link.href = url;
-    link.download = file.name.replace(/\.[^/.]+$/, "") + "." + format;
-    link.textContent = link.download;
+    link.download = outputName;
+    link.textContent = outputName;
     link.className = "download-link";
 
     result.appendChild(link);
+
+    // Save to history (real, persistent)
+    saveHistoryEntry({
+        fileName: file.name,
+        outputName: outputName,
+        timestamp: Date.now()
+    });
 
     if (autoDownload) {
         link.click();
     }
 });
+
+// initial history load
+loadHistory();
 </script>
 
 </body>
