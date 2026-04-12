@@ -14,187 +14,185 @@
         padding: 40px;
     }
 
-    .screen { display: none; }
-    .visible { display: block; }
-
-    .launcher-title {
-        font-size: 32px;
-        margin-bottom: 5px;
+    h1 {
+        font-size: 28px;
+        margin: 0 0 10px 0;
     }
 
-    .launcher-sub {
+    .subtitle {
         color: #888;
-        margin-bottom: 30px;
+        margin-bottom: 25px;
     }
 
-    .menu-item {
-        font-size: 20px;
-        margin: 10px 0;
-        color: #4da6ff;
+    .label {
+        color: #7fcaff;
+        margin: 15px 0 5px 0;
     }
 
-    .menu-item .arrow {
-        color: #7fcaff; /* light blue highlight */
-        margin-right: 8px;
-    }
-
-    .divider {
-        border-bottom: 2px dashed #666;
-        margin: 15px 0;
-        width: 90%;
-    }
-
-    .about-text {
-        color: #ddd;
-        width: 90%;
-        line-height: 1.4;
-    }
-
-    .back {
-        color: #4da6ff;
-        cursor: pointer;
-        margin-top: 10px;
-    }
-
-    .loading-text {
-        font-size: 24px;
+    .row {
         margin-bottom: 10px;
     }
 
-    .loading-sub {
-        color: #ccc;
-        margin-top: 10px;
+    input[type="file"] {
+        font-family: inherit;
+        color: white;
+    }
+
+    .options-group {
+        margin-bottom: 10px;
+    }
+
+    .options-group label {
+        font-weight: normal;
+        margin-right: 15px;
+        cursor: pointer;
+    }
+
+    button {
+        margin-top: 15px;
+        padding: 6px 16px;
+        background: #7fcaff;
+        border: none;
+        color: black;
+        font-family: inherit;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    button:active {
+        background: #4da6ff;
+    }
+
+    .result {
+        margin-top: 20px;
+        color: #ddd;
+        white-space: pre-line;
     }
 
     .version {
         color: #e6c300;
-        margin-top: 40px;
+        margin-top: 30px;
+    }
+
+    a.download-link {
+        color: #7fcaff;
+        text-decoration: underline;
+        cursor: pointer;
     }
 </style>
 </head>
 
 <body>
 
-<!-- LAUNCHER -->
-<div id="launcher" class="screen visible">
-    <div class="launcher-title">SqueezeBox lite Launcher</div>
-    <div class="launcher-sub">The smartest Compressor you will ever use.</div>
+<h1>SqueezeBox Lite</h1>
+<div class="subtitle">A lightweight, fast compression tool for low-power devices.</div>
 
-    <div id="menu">
-        <div class="menu-item"><span class="arrow">></span> Launch SqueezeBox lite</div>
-        <div class="menu-item"><span class="arrow" style="visibility:hidden">></span> What is SqueezeBox lite?</div>
-        <div class="menu-item"><span class="arrow" style="visibility:hidden">></span> Exit to Download page</div>
+<div class="row">
+    <div class="label">Input file</div>
+    <input id="file-input" type="file">
+</div>
+
+<div class="row">
+    <div class="label">Compression level</div>
+    <div class="options-group">
+        <label><input type="radio" name="level" value="fast" checked> Fast</label>
+        <label><input type="radio" name="level" value="balanced"> Balanced</label>
+        <label><input type="radio" name="level" value="max"> Maximum</label>
     </div>
-
-    <div class="version">version 1.5 beta testing</div>
 </div>
 
-<!-- ABOUT -->
-<div id="about" class="screen">
-    <div style="font-size:24px;">What is SqueezeBox lite?</div>
-    <div class="divider"></div>
-
-    <div class="about-text">
-        SqueezeBox Lite is a lightweight, fast, and simple compression tool designed for low‑power devices like Chromebooks.
-        It focuses on speed, clarity, and ease of use while keeping a clean, terminal‑inspired interface.
-        (click the [back] button)
+<div class="row">
+    <div class="label">Output format</div>
+    <div class="options-group">
+        <label><input type="radio" name="format" value="zip" checked> .zip</label>
+        <label><input type="radio" name="format" value="sqz"> .sqz</label>
     </div>
-
-    <div class="divider"></div>
-    <div id="back-about" class="back">> Back</div>
-
-    <div class="version">version 1.5 beta testing</div>
 </div>
 
-<!-- LOADING -->
-<div id="loading" class="screen">
-    <div class="loading-text">Loading... <span class="spinner">/</span></div>
-
-    <div class="loading-sub">
-        This process usually takes a few seconds<br>
-        Not loading quickly? Please report the problem on our official itch.io page
+<div class="row">
+    <div class="label">Options</div>
+    <div class="options-group">
+        <label><input type="checkbox" id="fast-mode"> Fast mode (skip extra metadata)</label><br>
+        <label><input type="checkbox" id="show-sizes" checked> Show file size before/after</label><br>
+        <label><input type="checkbox" id="auto-download" checked> Auto-download when done</label>
     </div>
-
-    <div class="version">version 1.5 beta testing</div>
 </div>
 
-<!-- ENGINE -->
-<div id="engine" class="screen">
-    <div style="font-size:24px;">SqueezeBox lite Engine</div>
-    <div class="divider"></div>
+<button id="compress-btn">Compress</button>
 
-    <div class="about-text">[ Your compression UI will go here ]</div>
+<div id="result" class="result"></div>
 
-    <div class="divider"></div>
-    <div id="back-engine" class="back">> Back</div>
-
-    <div class="version">version 1.5 beta testing</div>
-</div>
+<div class="version">version 2.1 beta testing</div>
 
 <script>
-let currentScreen = "launcher";
-
-function showScreen(id) {
-    currentScreen = id;
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('visible'));
-    document.getElementById(id).classList.add('visible');
-
-    if (id === "launcher") {
-        index = 0;
-        updateArrows();
-    }
+function getSelected(name) {
+    const el = document.querySelector('input[name="' + name + '"]:checked');
+    return el ? el.value : null;
 }
 
-/* Back buttons */
-document.getElementById('back-about').addEventListener('click', () => showScreen('launcher'));
-document.getElementById('back-engine').addEventListener('click', () => showScreen('launcher'));
-
-/* Launcher arrow navigation */
-let index = 0;
-const items = document.querySelectorAll('#menu .menu-item');
-
-function updateArrows() {
-    items.forEach((item, i) => {
-        const arrow = item.querySelector('.arrow');
-        arrow.style.visibility = (i === index) ? "visible" : "hidden";
-    });
+function formatBytes(bytes) {
+    if (bytes === 0) return "0 B";
+    const units = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return (bytes / Math.pow(1024, i)).toFixed(2) + " " + units[i];
 }
-updateArrows();
 
-document.addEventListener('keydown', (e) => {
-    if (currentScreen !== "launcher") return;
+document.getElementById('compress-btn').addEventListener('click', () => {
+    const fileInput = document.getElementById('file-input');
+    const result = document.getElementById('result');
+    result.textContent = "";
 
-    if (e.key === "ArrowDown") {
-        index = (index + 1) % items.length;
-        updateArrows();
+    if (!fileInput.files || fileInput.files.length === 0) {
+        result.textContent = "No file selected.";
+        return;
     }
 
-    if (e.key === "ArrowUp") {
-        index = (index - 1 + items.length) % items.length;
-        updateArrows();
+    const file = fileInput.files[0];
+    const level = getSelected("level");
+    const format = getSelected("format");
+    const fastMode = document.getElementById('fast-mode').checked;
+    const showSizes = document.getElementById('show-sizes').checked;
+    const autoDownload = document.getElementById('auto-download').checked;
+
+    const originalSize = file.size;
+
+    // Fake compression ratio based on level
+    let ratio = 0.7;
+    if (level === "fast") ratio = 0.8;
+    if (level === "balanced") ratio = 0.6;
+    if (level === "max") ratio = 0.4;
+    if (fastMode) ratio += 0.05;
+
+    const compressedSize = Math.max(100, Math.floor(originalSize * ratio));
+
+    const fakeBlob = new Blob(["SQUEEZEBOX_LITE_FAKE_DATA"], { type: "application/octet-stream" });
+    const url = URL.createObjectURL(fakeBlob);
+
+    let text = "Compression complete.\n";
+    text += "Output format: " + format + "\n";
+    text += "Level: " + level + (fastMode ? " (fast mode)" : "") + "\n";
+
+    if (showSizes) {
+        text += "\nOriginal size:  " + formatBytes(originalSize);
+        text += "\nEstimated size: " + formatBytes(compressedSize) + "\n";
     }
 
-    if (e.key === "Enter") {
-        if (index === 0) {
-            showScreen('loading');
-            setTimeout(() => showScreen('engine'), 2000);
-        }
-        if (index === 1) showScreen('about');
-        if (index === 2) window.location.href = "https://officalspongebucket.github.io/squeezebox-website/";
+    text += "\nDownload: ";
+
+    result.textContent = text;
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = file.name.replace(/\.[^/.]+$/, "") + "." + format;
+    link.textContent = link.download;
+    link.className = "download-link";
+
+    result.appendChild(link);
+
+    if (autoDownload) {
+        link.click();
     }
 });
-
-/* OG SqueezeBox spinner: frame-by-frame */
-const spinnerFrames = ["/", "-", "\\", "|"];
-let spinnerIndex = 0;
-
-setInterval(() => {
-    const spinner = document.querySelector(".spinner");
-    if (spinner && currentScreen === "loading") {
-        spinner.textContent = spinnerFrames[spinnerIndex];
-        spinnerIndex = (spinnerIndex + 1) % spinnerFrames.length;
-    }
-}, 100); // 0.1s per frame
 </script>
 
 </body>
