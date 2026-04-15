@@ -1,514 +1,335 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>SqueezeBox Lite</title>
-
-<link href="https://fonts.cdnfonts.com/css/open-sauce-one" rel="stylesheet">
-
-<style>
-    * { box-sizing: border-box; }
+  <meta charset="UTF-8">
+  <title>SqueezeBox Lite 2.8 – Easter Egg</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
     body {
-        background: #ffffff;
-        color: #1a1a1a;
-        font-family: 'Open Sauce One', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-        margin: 0;
-        padding: 24px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 24px;
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #f5f5f5;
+      transition: background-image 0.4s ease, opacity 0.4s ease;
     }
 
-    .logo-wrapper {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        margin-top: 8px;
+    /* Easter Egg background (permanent once unlocked) */
+    body.easter-egg-bg {
+      background-image: url('lite 2.8 logo.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: 0.2;
     }
 
-    .logo-wrapper img {
-        max-width: 260px;
-        height: auto;
+    /* Cryptic hint */
+    #hint-text {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      font-size: 14px;
+      opacity: 0.6;
+      pointer-events: none;
     }
 
-    .app-shell {
-        width: 100%;
-        max-width: 980px;
-        display: grid;
-        grid-template-columns: 180px 1fr;
-        gap: 16px;
-        align-items: flex-start;
+    /* Run button */
+    #run-btn {
+      position: fixed;
+      bottom: 80px;
+      left: 20px;
+      padding: 12px 28px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      background: #2979ff;
+      color: white;
+      cursor: pointer;
     }
 
-    /* History panel */
-    .history-panel {
-        background: #ffffff;
-        border-radius: 10px;
-        padding: 12px;
-        max-height: 420px;
-        overflow-y: auto;
-        border: 1px solid #e5e7eb;
+    /* "I'm bored" bubble */
+    #bored-bubble {
+      position: fixed;
+      bottom: 130px;
+      left: 20px;
+      background: white;
+      padding: 6px 12px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      font-size: 14px;
     }
 
-    .history-title {
-        font-size: 13px;
-        font-weight: 600;
-        color: #4b5563;
-        margin-bottom: 8px;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
+    #bored-bubble.visible {
+      opacity: 1;
+      pointer-events: auto;
+      cursor: pointer;
     }
 
-    .history-empty {
-        font-size: 12px;
-        color: #9ca3af;
-        margin-top: 4px;
+    /* Floating Snake window (machine module) */
+    #snake-window {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 300px;
+      height: 380px;
+      display: none;
+      pointer-events: none;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.4));
     }
 
-    .history-list {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        margin-top: 4px;
+    #snake-window.active {
+      display: block;
+      pointer-events: auto;
     }
 
-    .history-card {
-        background: #f3f4f6;
-        border-radius: 8px;
-        padding: 8px 10px;
-        font-size: 12px;
-        border: 1px solid #e5e7eb;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
+    /* Machine background image */
+    #snake-window .machine-bg {
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
     }
 
-    .history-filename {
-        color: #111827;
-        font-weight: 500;
-        word-break: break-all;
+    /* Snake canvas floating above the bar */
+    #snake-canvas {
+      position: absolute;
+      top: 110px; /* tweak this to align with your bar */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 200px;
+      background: transparent;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      image-rendering: pixelated;
+      z-index: 2;
     }
-
-    .history-timestamp {
-        color: #6b7280;
-        font-size: 11px;
-    }
-
-    /* Compression panel */
-    .compress-panel {
-        background: #ffffff;
-        border-radius: 12px;
-        padding: 18px 20px 20px;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-    }
-
-    .subtitle {
-        font-size: 13px;
-        color: #6b7280;
-        margin-bottom: 4px;
-    }
-
-    .row {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .label {
-        font-size: 13px;
-        font-weight: 600;
-        color: #111827;
-    }
-
-    input[type="file"] {
-        font-family: inherit;
-        font-size: 13px;
-        color: #111827;
-        background: #f9fafb;
-        border-radius: 8px;
-        padding: 8px;
-        border: 1px solid #d1d5db;
-        width: 100%;
-    }
-
-    input[type="file"]::file-selector-button {
-        background: #e5f0ff;
-        border: none;
-        color: #1d4ed8;
-        padding: 6px 10px;
-        margin-right: 8px;
-        border-radius: 6px;
-        font-size: 12px;
-        cursor: pointer;
-    }
-
-    .options-group {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px 18px;
-        font-size: 13px;
-    }
-
-    .options-group label {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        cursor: pointer;
-        color: #374151;
-        font-weight: 400;
-    }
-
-    .options-group input[type="radio"],
-    .options-group input[type="checkbox"] {
-        accent-color: #4f8dff;
-        cursor: pointer;
-    }
-
-    button {
-        align-self: flex-start;
-        margin-top: 4px;
-        padding: 8px 18px;
-        background: linear-gradient(135deg, #4f8dff, #2563eb);
-        border: none;
-        color: #ffffff;
-        font-family: inherit;
-        font-weight: 600;
-        font-size: 13px;
-        cursor: pointer;
-        border-radius: 999px;
-        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
-        transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.08s ease;
-    }
-
-    button:hover {
-        filter: brightness(1.05);
-        box-shadow: 0 10px 26px rgba(37, 99, 235, 0.4);
-        transform: translateY(-1px);
-    }
-
-    button:active {
-        filter: brightness(0.97);
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
-        transform: translateY(0);
-    }
-
-    .result {
-        margin-top: 6px;
-        color: #111827;
-        font-size: 13px;
-        white-space: pre-line;
-        min-height: 32px;
-    }
-
-    a.download-link {
-        color: #2563eb;
-        text-decoration: none;
-        font-weight: 500;
-    }
-
-    a.download-link:hover {
-        text-decoration: underline;
-    }
-
-    .version {
-        margin-top: 8px;
-        font-size: 12px;
-        color: #6b7280;
-        font-weight: 600;
-        text-align: center;
-        opacity: 0.9;
-    }
-
-    @media (max-width: 800px) {
-        .app-shell { grid-template-columns: 1fr; }
-    }
-</style>
+  </style>
 </head>
-
 <body>
 
-<div class="logo-wrapper">
-    <img src="image_2026-04-12_105509207.png" alt="SqueezeBox Lite Logo">
-</div>
+  <!-- Cryptic hint -->
+  <div id="hint-text">Try holding some buttons</div>
 
-<div class="app-shell">
-    <!-- History panel -->
-    <aside class="history-panel">
-        <div class="history-title">History</div>
-        <div id="history-empty" class="history-empty">No files squeezed yet.</div>
-        <div id="history-list" class="history-list"></div>
-    </aside>
+  <!-- Main Run button -->
+  <button id="run-btn">Run</button>
 
-    <!-- Compression / Decompression panel -->
-    <main class="compress-panel">
-        <div class="subtitle">A lightweight, modern compression tool for everyday files.</div>
+  <!-- Bubble that appears after holding -->
+  <div id="bored-bubble">I'm bored</div>
 
-        <div class="row">
-            <div class="label">Mode</div>
-            <div class="options-group">
-                <label><input type="radio" name="mode" value="compress" checked> Compress</label>
-                <label><input type="radio" name="mode" value="decompress"> Decompress</label>
-            </div>
-        </div>
+  <!-- Floating Snake window -->
+  <div id="snake-window">
+    <img src="machine.png" class="machine-bg" alt="">
+    <canvas id="snake-canvas" width="200" height="200"></canvas>
+  </div>
 
-        <div class="row">
-            <div class="label">Input file</div>
-            <input id="file-input" type="file">
-        </div>
+  <script>
+    const EGG_KEY = 'sblite_easter_egg_enabled';
 
-        <!-- WARNING BOX -->
-        <div id="compress-warning" 
-             style="display:none; background:#fff7d6; border:1px solid #f5d27a; 
-                    padding:10px 12px; border-radius:8px; font-size:12px; 
-                    color:#7a5a00;">
-            ⚠️ This file is unlikely to compress. It may even get bigger.
-        </div>
+    const runBtn = document.getElementById('run-btn');
+    const bubble = document.getElementById('bored-bubble');
+    const snakeWindow = document.getElementById('snake-window');
+    const canvas = document.getElementById('snake-canvas');
+    const ctx = canvas.getContext('2d');
 
-        <div class="row">
-            <div class="label">Compression level</div>
-            <div class="options-group">
-                <label><input type="radio" name="level" value="fast" checked> Fast</label>
-                <label><input type="radio" name="level" value="balanced"> Balanced</label>
-                <label><input type="radio" name="level" value="max"> Maximum</label>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="label">Output format</div>
-            <div class="options-group">
-                <label><input type="radio" name="format" value="zip" checked> .zip</label>
-                <label><input type="radio" name="format" value="sqz"> .sqz</label>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="label">Options</div>
-            <div class="options-group" style="flex-direction: column; align-items: flex-start;">
-                <label><input type="checkbox" id="fast-mode"> Fast mode (skip extra metadata)</label>
-                <label><input type="checkbox" id="show-sizes" checked> Show file size before/after</label>
-                <label><input type="checkbox" id="auto-download" checked> Auto-download when done</label>
-            </div>
-        </div>
-
-        <button id="compress-btn">Run</button>
-
-        <div id="result" class="result"></div>
-    </main>
-</div>
-
-<div class="version">version 2.7</div>
-
-<!-- JSZip CDN -->
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-
-<script>
-/* ------------------------------
-   WARNING SYSTEM
------------------------------- */
-const warningBox = document.getElementById("compress-warning");
-
-document.getElementById("file-input").addEventListener("change", () => {
-    const file = document.getElementById("file-input").files[0];
-    if (!file) {
-        warningBox.style.display = "none";
-        return;
+    // Apply Easter Egg mode on load if previously unlocked
+    if (localStorage.getItem(EGG_KEY) === 'true') {
+      document.body.classList.add('easter-egg-bg');
     }
 
-    const name = file.name.toLowerCase();
-    const ext = name.split(".").pop();
+    // Hold-to-show "I'm bored"
+    let holdTimeout = null;
 
-    const alreadyCompressed = [
-        "png","jpg","jpeg","gif","mp4","mov","zip","rar","7z",
-        "pdf","mp3","ogg","docx","xlsx","pptx","webp"
-    ];
-
-    if (alreadyCompressed.includes(ext) || file.size < 2000) {
-        warningBox.style.display = "block";
-    } else {
-        warningBox.style.display = "none";
-    }
-});
-
-/* ------------------------------
-   HISTORY SYSTEM
------------------------------- */
-function formatTimestamp(date) {
-    const now = new Date();
-    const isToday = date.toDateString() === now.toDateString();
-    const yesterday = new Date();
-    yesterday.setDate(now.getDate() - 1);
-    const isYesterday = date.toDateString() === yesterday.toDateString();
-
-    let dayPart = date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-    if (isToday) dayPart = "Today";
-    else if (isYesterday) dayPart = "Yesterday";
-
-    const timePart = date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-    return dayPart + " " + timePart;
-}
-
-function loadHistory() {
-    const listEl = document.getElementById('history-list');
-    const emptyEl = document.getElementById('history-empty');
-    listEl.innerHTML = "";
-
-    let history = JSON.parse(localStorage.getItem('squeezebox_history') || "[]");
-
-    if (!history.length) {
-        emptyEl.style.display = "block";
-        return;
+    function startHold() {
+      holdTimeout = setTimeout(() => {
+        bubble.classList.add('visible');
+      }, 1500);
     }
 
-    emptyEl.style.display = "none";
+    function cancelHold() {
+      if (holdTimeout) {
+        clearTimeout(holdTimeout);
+        holdTimeout = null;
+      }
+    }
 
-    history.sort((a, b) => b.timestamp - a.timestamp)
-        .forEach(entry => {
-            const card = document.createElement('div');
-            card.className = 'history-card';
+    runBtn.addEventListener('mousedown', startHold);
+    runBtn.addEventListener('touchstart', startHold);
 
-            const nameEl = document.createElement('div');
-            nameEl.className = 'history-filename';
-            nameEl.textContent = entry.outputName;
-
-            const timeEl = document.createElement('div');
-            timeEl.className = 'history-timestamp';
-            timeEl.textContent = formatTimestamp(new Date(entry.timestamp));
-
-            card.appendChild(nameEl);
-            card.appendChild(timeEl);
-            listEl.appendChild(card);
-        });
-}
-
-function saveHistoryEntry(entry) {
-    let history = JSON.parse(localStorage.getItem('squeezebox_history') || "[]");
-    history.push(entry);
-    if (history.length > 30) history = history.slice(-30);
-    localStorage.setItem('squeezebox_history', JSON.stringify(history));
-    loadHistory();
-}
-
-/* ------------------------------
-   COMPRESSION / DECOMPRESSION
------------------------------- */
-function readFileAsArrayBuffer(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = e => resolve(e.target.result);
-        reader.onerror = e => reject(e);
-        reader.readAsArrayBuffer(file);
+    ['mouseup', 'mouseleave', 'touchend', 'touchcancel'].forEach(ev => {
+      runBtn.addEventListener(ev, cancelHold);
     });
-}
 
-document.getElementById('compress-btn').addEventListener('click', async () => {
-    const fileInput = document.getElementById('file-input');
-    const result = document.getElementById('result');
-    result.textContent = "";
+    // Click "I'm bored" → activate Easter Egg
+    bubble.addEventListener('click', () => {
+      bubble.classList.remove('visible');
 
-    if (!fileInput.files.length) {
-        result.textContent = "No file selected.";
-        return;
+      // Permanently enable Easter Egg for this browser
+      localStorage.setItem(EGG_KEY, 'true');
+      document.body.classList.add('easter-egg-bg');
+
+      // Show Snake window
+      snakeWindow.classList.add('active');
+
+      startSnake();
+    });
+
+    // ----------------------
+    // Snake game
+    // ----------------------
+    const grid = 20;
+    const cell = canvas.width / grid;
+
+    let snake, dir, nextDir, food;
+    let overlay = [];
+    let revealed = 0;
+    const totalCells = grid * grid;
+
+    const logo = new Image();
+    logo.src = 'lite 2.8 logo.png';
+
+    let loopId = null;
+    const stepInterval = 120;
+    let lastTime = 0;
+
+    function initOverlay() {
+      overlay = [];
+      for (let y = 0; y < grid; y++) {
+        const row = [];
+        for (let x = 0; x < grid; x++) row.push(1);
+        overlay.push(row);
+      }
+      revealed = 0;
     }
 
-    const file = fileInput.files[0];
-    const mode = document.querySelector('input[name="mode"]:checked').value;
-    const level = document.querySelector('input[name="level"]:checked').value;
-    const format = document.querySelector('input[name="format"]:checked').value;
-    const showSizes = document.getElementById('show-sizes').checked;
-    const autoDownload = document.getElementById('auto-download').checked;
+    function reveal(x, y) {
+      if (x < 0 || y < 0 || x >= grid || y >= grid) return;
+      if (overlay[y][x] === 1) {
+        overlay[y][x] = 0;
+        revealed++;
+      }
+    }
 
-    try {
-        const data = await readFileAsArrayBuffer(file);
-
-        if (mode === "compress") {
-            const zip = new JSZip();
-            zip.file(file.name, data);
-
-            const blob = await zip.generateAsync({
-                type: "blob",
-                compression: level === "fast" ? "STORE" : "DEFLATE",
-                compressionOptions: level === "max" ? { level: 9 } :
-                                    level === "balanced" ? { level: 5 } :
-                                    { level: 1 }
-            });
-
-            const baseName = file.name.replace(/\.[^/.]+$/, "");
-            const outputName = baseName + "." + format;
-
-            let text = "Compression complete.\n";
-            text += "Output: " + outputName + "\n";
-
-            if (showSizes) {
-                text += "\nOriginal size: " + file.size + " bytes";
-                text += "\nCompressed size: " + blob.size + " bytes\n";
-            }
-
-            text += "\nDownload: ";
-            result.textContent = text;
-
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = outputName;
-            link.textContent = outputName;
-            link.className = "download-link";
-            result.appendChild(link);
-
-            saveHistoryEntry({ outputName, timestamp: Date.now() });
-
-            if (autoDownload) link.click();
-
-        } else {
-            const zip = await JSZip.loadAsync(data);
-            const files = Object.keys(zip.files).filter(name => !zip.files[name].dir);
-
-            if (files.length !== 1) {
-                result.textContent = "This archive contains multiple files. Only single-file archives are supported.";
-                return;
-            }
-
-            const entry = zip.files[files[0]];
-            const innerData = await entry.async("arraybuffer");
-            const innerBlob = new Blob([innerData]);
-            const outputName = entry.name;
-
-            let text = "Decompression complete.\n";
-            text += "Output: " + outputName + "\n";
-
-            if (showSizes) {
-                text += "\nArchive size: " + file.size + " bytes";
-                text += "\nExtracted size: " + innerBlob.size + " bytes\n";
-            }
-
-            text += "\nDownload: ";
-            result.textContent = text;
-
-            const url = URL.createObjectURL(innerBlob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = outputName;
-            link.textContent = outputName;
-            link.className = "download-link";
-            result.appendChild(link);
-
-            saveHistoryEntry({ outputName, timestamp: Date.now() });
-
-            if (autoDownload) link.click();
+    function placeFood() {
+      while (true) {
+        const x = Math.floor(Math.random() * grid);
+        const y = Math.floor(Math.random() * grid);
+        if (!snake.some(s => s.x === x && s.y === y)) {
+          food = { x, y };
+          return;
         }
-    } catch (err) {
-        console.error(err);
-        result.textContent = "Something went wrong while processing this file.";
+      }
     }
-});
 
-loadHistory();
-</script>
+    function resetSnake() {
+      snake = [
+        { x: 5, y: 10 },
+        { x: 4, y: 10 },
+        { x: 3, y: 10 }
+      ];
+      dir = { x: 1, y: 0 };
+      nextDir = { x: 1, y: 0 };
+      initOverlay();
+      placeFood();
+    }
 
+    function drawSnake() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw logo
+      ctx.drawImage(logo, 0, 0, canvas.width, canvas.height);
+
+      // Dark overlay
+      ctx.fillStyle = 'rgba(0,0,0,0.8)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Reveal cells
+      ctx.globalCompositeOperation = 'destination-out';
+      for (let y = 0; y < grid; y++) {
+        for (let x = 0; x < grid; x++) {
+          if (overlay[y][x] === 0) {
+            ctx.fillRect(x * cell, y * cell, cell, cell);
+          }
+        }
+      }
+      ctx.globalCompositeOperation = 'source-over';
+
+      // Draw snake
+      ctx.fillStyle = '#ffffff';
+      snake.forEach(s => {
+        ctx.fillRect(s.x * cell, s.y * cell, cell, cell);
+      });
+
+      // Draw food
+      ctx.fillStyle = '#ff5252';
+      ctx.fillRect(food.x * cell, food.y * cell, cell, cell);
+    }
+
+    function stepSnake() {
+      dir = nextDir;
+
+      const head = snake[0];
+      const newHead = { x: head.x + dir.x, y: head.y + dir.y };
+
+      // Wall or self collision → reset
+      if (
+        newHead.x < 0 || newHead.x >= grid ||
+        newHead.y < 0 || newHead.y >= grid ||
+        snake.some(s => s.x === newHead.x && s.y === newHead.y)
+      ) {
+        resetSnake();
+        return;
+      }
+
+      snake.unshift(newHead);
+
+      if (newHead.x === food.x && newHead.y === food.y) {
+        placeFood();
+      } else {
+        snake.pop();
+      }
+
+      reveal(newHead.x, newHead.y);
+      drawSnake();
+    }
+
+    window.addEventListener('keydown', e => {
+      if (e.key === 'ArrowUp' && dir.y !== 1) nextDir = { x: 0, y: -1 };
+      if (e.key === 'ArrowDown' && dir.y !== -1) nextDir = { x: 0, y: 1 };
+      if (e.key === 'ArrowLeft' && dir.x !== 1) nextDir = { x: -1, y: 0 };
+      if (e.key === 'ArrowRight' && dir.x !== -1) nextDir = { x: 1, y: 0 };
+    });
+
+    function loop(timestamp) {
+      if (!lastTime) lastTime = timestamp;
+      const delta = timestamp - lastTime;
+      if (delta >= stepInterval) {
+        stepSnake();
+        lastTime = timestamp;
+      }
+      loopId = requestAnimationFrame(loop);
+    }
+
+    function startSnake() {
+      if (loopId) cancelAnimationFrame(loopId);
+      logo.onload = () => {
+        resetSnake();
+        lastTime = 0;
+        loopId = requestAnimationFrame(loop);
+      };
+      if (logo.complete) {
+        resetSnake();
+        lastTime = 0;
+        loopId = requestAnimationFrame(loop);
+      }
+    }
+  </script>
 </body>
 </html>
