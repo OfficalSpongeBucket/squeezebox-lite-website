@@ -71,6 +71,10 @@
         pointer-events: none;
         transition: opacity 0.3s ease, transform 0.3s ease;
         z-index: 200;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
     #snake-window.active {
         opacity: 1;
@@ -78,28 +82,49 @@
         pointer-events: auto;
     }
 
-    /* Canvas positioned over the machine image */
-    #snake-window {
-        position: fixed;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
-
     .machine-bg {
         width: 100%;
-        height: auto;
+        height: 100%;
         display: block;
         position: absolute;
         top: 0;
         left: 0;
+        object-fit: cover;
     }
 
     #snake-canvas {
         position: relative;
         z-index: 1;
         margin-top: 60px;
+        border: 2px solid rgba(255,255,255,0.2);
+        border-radius: 4px;
+    }
+
+    #snake-close {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        z-index: 2;
+        background: rgba(0,0,0,0.4);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        font-size: 13px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        box-shadow: none;
+        line-height: 1;
+    }
+    #snake-close:hover {
+        background: rgba(0,0,0,0.65);
+        transform: none;
+        filter: none;
+        box-shadow: none;
     }
 
     /* Easter Egg background */
@@ -131,7 +156,6 @@
         align-items: flex-start;
     }
 
-    /* History panel */
     .history-panel {
         background: #ffffff;
         border-radius: 10px;
@@ -185,7 +209,6 @@
         font-size: 11px;
     }
 
-    /* Compression panel */
     .compress-panel {
         background: #ffffff;
         border-radius: 12px;
@@ -319,12 +342,12 @@
 </head>
 <body>
 
-<!-- Easter Egg UI Elements (inside body) -->
-<div id="hint-text">Try holding some buttons</div>
+<div id="hint-text">Try holding the Run button</div>
 <div id="bored-bubble">I'm bored</div>
 
 <div id="snake-window">
     <img src="machine.png" class="machine-bg" alt="">
+    <button id="snake-close" title="Close">✕</button>
     <canvas id="snake-canvas" width="200" height="200"></canvas>
 </div>
 
@@ -333,14 +356,12 @@
 </div>
 
 <div class="app-shell">
-    <!-- History panel -->
     <aside class="history-panel">
         <div class="history-title">History</div>
         <div id="history-empty" class="history-empty">No files squeezed yet.</div>
         <div id="history-list" class="history-list"></div>
     </aside>
 
-    <!-- Compression / Decompression panel -->
     <main class="compress-panel">
         <div class="subtitle">A lightweight, modern compression tool for everyday files.</div>
 
@@ -357,11 +378,9 @@
             <input id="file-input" type="file">
         </div>
 
-        <!-- WARNING BOX -->
         <div id="compress-warning"
              style="display:none; background:#fff7d6; border:1px solid #f5d27a;
-                    padding:10px 12px; border-radius:8px; font-size:12px;
-                    color:#7a5a00;">
+                    padding:10px 12px; border-radius:8px; font-size:12px; color:#7a5a00;">
             ⚠️ This file is unlikely to compress. It may even get bigger.
         </div>
 
@@ -399,93 +418,55 @@
 
 <div class="version">version 2.8</div>
 
-<!-- JSZip CDN -->
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
 <script>
-/* ------------------------------
-   EASTER EGG SYSTEM
------------------------------- */
-const runBtn     = document.getElementById("compress-btn");
-const bubble     = document.getElementById("bored-bubble");
-const hint       = document.getElementById("hint-text");
+/* ─── DECLARATIONS (all at top — prevents let temporal dead zone errors) ─── */
+const runBtn      = document.getElementById("compress-btn");
+const bubble      = document.getElementById("bored-bubble");
+const hint        = document.getElementById("hint-text");
 const snakeWindow = document.getElementById("snake-window");
 const snakeCanvas = document.getElementById("snake-canvas");
-const ctx        = snakeCanvas.getContext("2d");
+const snakeClose  = document.getElementById("snake-close");
+const ctx         = snakeCanvas.getContext("2d");
+const warningBox  = document.getElementById("compress-warning");
 
-// Show hint after 5 seconds
-setTimeout(() => hint.classList.add("visible"), 5000);
-
-// Hold the Run button for 1.5s to reveal bubble
-let holdTimeout = null;
-
-runBtn.addEventListener("mousedown", () => {
-    holdTimeout = setTimeout(() => bubble.classList.add("visible"), 1500);
-});
-runBtn.addEventListener("mouseup",    () => clearTimeout(holdTimeout));
-runBtn.addEventListener("mouseleave", () => clearTimeout(holdTimeout));
-
-bubble.addEventListener("click", () => {
-    bubble.classList.remove("visible");
-    hint.classList.remove("visible");
-    localStorage.setItem("sblite_easter_egg_enabled", "true");
-    document.body.classList.add("easter-egg-bg");
-    snakeWindow.classList.add("active");
-    startSnake();
-});
-
-// Auto-enable if previously activated
-if (localStorage.getItem("sblite_easter_egg_enabled") === "true") {
-    document.body.classList.add("easter-egg-bg");
-    snakeWindow.classList.add("active");
-    startSnake();
-}
-
-/* ------------------------------
-   SNAKE GAME
------------------------------- */
-let snake    = [{ x: 10, y: 10 }];
-let food     = { x: 5, y: 5 };
-let dx       = 1;
-let dy       = 0;
+// Snake state
+let snake        = [{ x: 10, y: 10 }];
+let food         = { x: 5, y: 5 };
+let dx           = 1;
+let dy           = 0;
 let snakeStarted = false;
-const gridSize = 20;
-const tileSize = 10;
+const GRID       = 20;
+const TILE       = 10;
 
-document.addEventListener("keydown", e => {
-    if (e.key === "ArrowUp"    && dy === 0) { dx = 0; dy = -1; }
-    if (e.key === "ArrowDown"  && dy === 0) { dx = 0; dy =  1; }
-    if (e.key === "ArrowLeft"  && dx === 0) { dx = -1; dy = 0; }
-    if (e.key === "ArrowRight" && dx === 0) { dx =  1; dy = 0; }
-});
-
+/* ─── SNAKE GAME ─── */
 function drawSnake() {
     ctx.fillStyle = "#4f8dff";
-    snake.forEach(part => ctx.fillRect(part.x * tileSize, part.y * tileSize, tileSize, tileSize));
+    snake.forEach(p => ctx.fillRect(p.x * TILE, p.y * TILE, TILE - 1, TILE - 1));
 }
 
 function drawFood() {
     ctx.fillStyle = "#ff4747";
-    ctx.fillRect(food.x * tileSize, food.y * tileSize, tileSize, tileSize);
+    ctx.fillRect(food.x * TILE, food.y * TILE, TILE - 1, TILE - 1);
 }
 
 function moveSnake() {
-    const head = { x: (snake[0].x + dx + gridSize) % gridSize,
-                   y: (snake[0].y + dy + gridSize) % gridSize };
-
-    // Collision with self → reset
+    const head = {
+        x: (snake[0].x + dx + GRID) % GRID,
+        y: (snake[0].y + dy + GRID) % GRID
+    };
+    // Self-collision → reset
     if (snake.some(p => p.x === head.x && p.y === head.y)) {
         snake = [{ x: 10, y: 10 }];
         dx = 1; dy = 0;
         return;
     }
-
     snake.unshift(head);
-
     if (head.x === food.x && head.y === food.y) {
         food = {
-            x: Math.floor(Math.random() * gridSize),
-            y: Math.floor(Math.random() * gridSize)
+            x: Math.floor(Math.random() * GRID),
+            y: Math.floor(Math.random() * GRID)
         };
     } else {
         snake.pop();
@@ -505,37 +486,66 @@ function startSnake() {
     setInterval(gameLoop, 120);
 }
 
-/* ------------------------------
-   WARNING SYSTEM
------------------------------- */
-const warningBox = document.getElementById("compress-warning");
+document.addEventListener("keydown", e => {
+    if      (e.key === "ArrowUp"    && dy === 0) { dx = 0;  dy = -1; e.preventDefault(); }
+    else if (e.key === "ArrowDown"  && dy === 0) { dx = 0;  dy =  1; e.preventDefault(); }
+    else if (e.key === "ArrowLeft"  && dx === 0) { dx = -1; dy =  0; e.preventDefault(); }
+    else if (e.key === "ArrowRight" && dx === 0) { dx =  1; dy =  0; e.preventDefault(); }
+});
 
+/* ─── EASTER EGG SYSTEM ─── */
+setTimeout(() => hint.classList.add("visible"), 5000);
+
+let holdTimeout = null;
+runBtn.addEventListener("mousedown", () => {
+    holdTimeout = setTimeout(() => bubble.classList.add("visible"), 1500);
+});
+runBtn.addEventListener("mouseup",    () => clearTimeout(holdTimeout));
+runBtn.addEventListener("mouseleave", () => clearTimeout(holdTimeout));
+
+function activateEasterEgg() {
+    bubble.classList.remove("visible");
+    hint.classList.remove("visible");
+    localStorage.setItem("sblite_easter_egg_enabled", "true");
+    document.body.classList.add("easter-egg-bg");
+    snakeWindow.classList.add("active");
+    startSnake();
+}
+
+bubble.addEventListener("click", activateEasterEgg);
+
+snakeClose.addEventListener("click", () => {
+    snakeWindow.classList.remove("active");
+});
+
+// Auto-enable if previously activated
+if (localStorage.getItem("sblite_easter_egg_enabled") === "true") {
+    document.body.classList.add("easter-egg-bg");
+    snakeWindow.classList.add("active");
+    startSnake();
+}
+
+/* ─── WARNING SYSTEM ─── */
 document.getElementById("file-input").addEventListener("change", () => {
     const file = document.getElementById("file-input").files[0];
     if (!file) { warningBox.style.display = "none"; return; }
-
     const ext = file.name.toLowerCase().split(".").pop();
     const alreadyCompressed = [
         "png","jpg","jpeg","gif","mp4","mov","zip","rar","7z",
         "pdf","mp3","ogg","docx","xlsx","pptx","webp"
     ];
-
     warningBox.style.display =
         (alreadyCompressed.includes(ext) || file.size < 2000) ? "block" : "none";
 });
 
-/* ------------------------------
-   HISTORY SYSTEM
------------------------------- */
+/* ─── HISTORY SYSTEM ─── */
 function formatTimestamp(date) {
     const now = new Date();
     const yesterday = new Date();
     yesterday.setDate(now.getDate() - 1);
-
     let dayPart = date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-    if (date.toDateString() === now.toDateString())       dayPart = "Today";
+    if (date.toDateString() === now.toDateString())            dayPart = "Today";
     else if (date.toDateString() === yesterday.toDateString()) dayPart = "Yesterday";
-
     return dayPart + " " + date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 }
 
@@ -543,24 +553,18 @@ function loadHistory() {
     const listEl  = document.getElementById("history-list");
     const emptyEl = document.getElementById("history-empty");
     listEl.innerHTML = "";
-
     const history = JSON.parse(localStorage.getItem("squeezebox_history") || "[]");
-
     if (!history.length) { emptyEl.style.display = "block"; return; }
     emptyEl.style.display = "none";
-
     history.sort((a, b) => b.timestamp - a.timestamp).forEach(entry => {
-        const card    = document.createElement("div");
+        const card   = document.createElement("div");
         card.className = "history-card";
-
-        const nameEl  = document.createElement("div");
+        const nameEl = document.createElement("div");
         nameEl.className = "history-filename";
         nameEl.textContent = entry.outputName;
-
-        const timeEl  = document.createElement("div");
+        const timeEl = document.createElement("div");
         timeEl.className = "history-timestamp";
         timeEl.textContent = formatTimestamp(new Date(entry.timestamp));
-
         card.appendChild(nameEl);
         card.appendChild(timeEl);
         listEl.appendChild(card);
@@ -575,9 +579,7 @@ function saveHistoryEntry(entry) {
     loadHistory();
 }
 
-/* ------------------------------
-   COMPRESSION / DECOMPRESSION
------------------------------- */
+/* ─── COMPRESSION / DECOMPRESSION ─── */
 function readFileAsArrayBuffer(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -588,17 +590,17 @@ function readFileAsArrayBuffer(file) {
 }
 
 document.getElementById("compress-btn").addEventListener("click", async () => {
-    const fileInput  = document.getElementById("file-input");
-    const result     = document.getElementById("result");
+    const fileInput   = document.getElementById("file-input");
+    const result      = document.getElementById("result");
     result.textContent = "";
 
     if (!fileInput.files.length) { result.textContent = "No file selected."; return; }
 
-    const file        = fileInput.files[0];
-    const mode        = document.querySelector('input[name="mode"]:checked').value;
-    const level       = document.querySelector('input[name="level"]:checked').value;
-    const format      = document.querySelector('input[name="format"]:checked').value;
-    const showSizes   = document.getElementById("show-sizes").checked;
+    const file         = fileInput.files[0];
+    const mode         = document.querySelector('input[name="mode"]:checked').value;
+    const level        = document.querySelector('input[name="level"]:checked').value;
+    const format       = document.querySelector('input[name="format"]:checked').value;
+    const showSizes    = document.getElementById("show-sizes").checked;
     const autoDownload = document.getElementById("auto-download").checked;
 
     try {
@@ -607,18 +609,13 @@ document.getElementById("compress-btn").addEventListener("click", async () => {
         if (mode === "compress") {
             const zip = new JSZip();
             zip.file(file.name, data);
-
             const blob = await zip.generateAsync({
                 type: "blob",
                 compression: level === "fast" ? "STORE" : "DEFLATE",
                 compressionOptions: level === "max"      ? { level: 9 } :
-                                    level === "balanced" ? { level: 5 } :
-                                                          { level: 1 }
+                                    level === "balanced" ? { level: 5 } : { level: 1 }
             });
-
-            const baseName   = file.name.replace(/\.[^/.]+$/, "");
-            const outputName = baseName + "." + format;
-
+            const outputName = file.name.replace(/\.[^/.]+$/, "") + "." + format;
             let text = "Compression complete.\nOutput: " + outputName + "\n";
             if (showSizes) {
                 text += "\nOriginal size:   " + file.size + " bytes";
@@ -626,48 +623,38 @@ document.getElementById("compress-btn").addEventListener("click", async () => {
             }
             text += "\nDownload: ";
             result.textContent = text;
-
-            const url  = URL.createObjectURL(blob);
             const link = document.createElement("a");
-            link.href      = url;
-            link.download  = outputName;
+            link.href = URL.createObjectURL(blob);
+            link.download = outputName;
             link.textContent = outputName;
             link.className = "download-link";
             result.appendChild(link);
-
             saveHistoryEntry({ outputName, timestamp: Date.now() });
             if (autoDownload) link.click();
 
         } else {
             const zip   = await JSZip.loadAsync(data);
             const files = Object.keys(zip.files).filter(n => !zip.files[n].dir);
-
             if (files.length !== 1) {
                 result.textContent = "This archive contains multiple files. Only single-file archives are supported.";
                 return;
             }
-
-            const entry     = zip.files[files[0]];
-            const innerData = await entry.async("arraybuffer");
-            const innerBlob = new Blob([innerData]);
+            const entry      = zip.files[files[0]];
+            const innerBlob  = new Blob([await entry.async("arraybuffer")]);
             const outputName = entry.name;
-
             let text = "Decompression complete.\nOutput: " + outputName + "\n";
             if (showSizes) {
-                text += "\nArchive size:    " + file.size + " bytes";
-                text += "\nExtracted size:  " + innerBlob.size + " bytes\n";
+                text += "\nArchive size:   " + file.size + " bytes";
+                text += "\nExtracted size: " + innerBlob.size + " bytes\n";
             }
             text += "\nDownload: ";
             result.textContent = text;
-
-            const url  = URL.createObjectURL(innerBlob);
             const link = document.createElement("a");
-            link.href      = url;
-            link.download  = outputName;
+            link.href = URL.createObjectURL(innerBlob);
+            link.download = outputName;
             link.textContent = outputName;
             link.className = "download-link";
             result.appendChild(link);
-
             saveHistoryEntry({ outputName, timestamp: Date.now() });
             if (autoDownload) link.click();
         }
