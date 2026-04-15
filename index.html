@@ -7,6 +7,77 @@
 <link href="https://fonts.cdnfonts.com/css/open-sauce-one" rel="stylesheet">
 
 <style>
+   /* Hint text */
+#hint-text {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    color: #ffffff;
+    background: rgba(0,0,0,0.4);
+    padding: 6px 12px;
+    border-radius: 8px;
+    pointer-events: none;
+}
+#hint-text.visible {
+    opacity: 1;
+}
+
+/* I'm bored bubble */
+#bored-bubble {
+    position: fixed;
+    bottom: 80px;
+    left: 20px;
+    background: #2563eb;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 14px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    cursor: pointer;
+}
+#bored-bubble.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Snake window */
+#snake-window {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 260px;
+    height: 320px;
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+#snake-window.active {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: auto;
+}
+
+/* Machine background image */
+.machine-bg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Easter Egg background */
+body.easter-egg-bg {
+    background-image: url("lite 2.8 logo.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
     * { box-sizing: border-box; }
 
     body {
@@ -230,6 +301,15 @@
     }
 </style>
 </head>
+<!-- Easter Egg UI Elements -->
+<div id="hint-text">Try holding some buttons</div>
+
+<div id="bored-bubble">I'm bored</div>
+
+<div id="snake-window">
+    <img src="machine.png" class="machine-bg" alt="">
+    <canvas id="snake-canvas" width="200" height="200"></canvas>
+</div>
 
 <body>
 
@@ -302,12 +382,115 @@
     </main>
 </div>
 
-<div class="version">version 2.7</div>
+<div class="version">version 2.7.3</div>
 
 <!-- JSZip CDN -->
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
 <script>
+const runBtn = document.getElementById('compress-btn');
+
+   /* ------------------------------------
+   EASTER EGG SYSTEM
+------------------------------------ */
+
+// Elements
+const bubble = document.getElementById("bored-bubble");
+const hint = document.getElementById("hint-text");
+const snakeWindow = document.getElementById("snake-window");
+const snakeCanvas = document.getElementById("snake-canvas");
+const ctx = snakeCanvas.getContext("2d");
+
+// Show hint after 5 seconds
+setTimeout(() => {
+    hint.classList.add("visible");
+}, 5000);
+
+// HOLD DETECTION for Run button
+let holdTimeout = null;
+
+runBtn.addEventListener("mousedown", () => {
+    holdTimeout = setTimeout(() => {
+        bubble.classList.add("visible");
+    }, 1500);
+});
+
+runBtn.addEventListener("mouseup", () => clearTimeout(holdTimeout));
+runBtn.addEventListener("mouseleave", () => clearTimeout(holdTimeout));
+
+// ACTIVATE EASTER EGG
+bubble.addEventListener("click", () => {
+    bubble.classList.remove("visible");
+    hint.classList.remove("visible");
+
+    // Save mode
+    localStorage.setItem("sblite_easter_egg_enabled", "true");
+
+    // Switch background
+    document.body.classList.add("easter-egg-bg");
+
+    // Show Snake window
+    snakeWindow.classList.add("active");
+
+    startSnake();
+});
+
+// AUTO‑ENABLE if saved
+if (localStorage.getItem("sblite_easter_egg_enabled") === "true") {
+    document.body.classList.add("easter-egg-bg");
+    snakeWindow.classList.add("active");
+    startSnake();
+}
+
+/* ------------------------------------
+   SNAKE GAME
+------------------------------------ */
+
+let snake = [{ x: 10, y: 10 }];
+let food = { x: 5, y: 5 };
+let dx = 1;
+let dy = 0;
+const gridSize = 20;
+const tileSize = 10;
+
+function drawSnake() {
+    ctx.fillStyle = "#4f8dff";
+    snake.forEach(part => {
+        ctx.fillRect(part.x * tileSize, part.y * tileSize, tileSize, tileSize);
+    });
+}
+
+function drawFood() {
+    ctx.fillStyle = "#ff4747";
+    ctx.fillRect(food.x * tileSize, food.y * tileSize, tileSize, tileSize);
+}
+
+function moveSnake() {
+    const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+    snake.unshift(head);
+
+    if (head.x === food.x && head.y === food.y) {
+        food = {
+            x: Math.floor(Math.random() * gridSize),
+            y: Math.floor(Math.random() * gridSize)
+        };
+    } else {
+        snake.pop();
+    }
+}
+
+function gameLoop() {
+    ctx.clearRect(0, 0, snakeCanvas.width, snakeCanvas.height);
+    moveSnake();
+    drawSnake();
+    drawFood();
+}
+
+function startSnake() {
+    setInterval(gameLoop, 120);
+}
+
+</script>
 /* ------------------------------
    WARNING SYSTEM
 ------------------------------ */
